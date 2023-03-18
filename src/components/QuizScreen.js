@@ -8,13 +8,13 @@ export default function QuizScreen({ route, navigation }) {
 
   const [quizzes, setQuizzes] = useState([]);
   const [quizzesStatus, setQuizzesStatus] = useState("idle");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState("");
-  const userAnswers = useRef([]);
+  const providedAnswers = useRef([]);
 
   const pagesSize = quizzes.length;
-  const isLastPage = currentPage === pagesSize;
-  const isFirstPage = currentPage === 1;
+  const isLastPage = currentPage === pagesSize - 1;
+  const isFirstPage = currentPage === 0;
 
   useEffect(() => {
     setQuizzesStatus("loading");
@@ -29,13 +29,20 @@ export default function QuizScreen({ route, navigation }) {
     );
   }, [categoryId, difficulty]);
 
+  /** if the user has already answered to a question, select that answer */
+  useEffect(() => {
+    setSelectedAnswer("");
+    const providedAnswer = providedAnswers.current[currentPage];
+    if (providedAnswer) {
+      setSelectedAnswer(providedAnswer);
+    }
+  }, [currentPage]);
+
   const getScore = () => {
-    let score = 0;
-    quizzes.forEach((quiz, i) => {
-      if (quiz.correct_answer === userAnswers.current[i]) {
-        score++;
-      }
-    });
+    const score = quizzes.reduce(
+      (sum, quiz, i) => (quiz.correct_answer === providedAnswers.current[i] ? sum + 1 : sum + 0),
+      0
+    );
     return score;
   };
 
@@ -47,20 +54,13 @@ export default function QuizScreen({ route, navigation }) {
   const handleNext = () => {
     if (!selectedAnswer) return;
 
-    userAnswers.current[currentPage - 1] = selectedAnswer;
+    providedAnswers.current[currentPage] = selectedAnswer;
     setCurrentPage((page) => page + 1);
-
-    if (userAnswers.current[currentPage]) {
-      setSelectedAnswer(userAnswers.current[currentPage]);
-    } else {
-      setSelectedAnswer("");
-    }
   };
 
   const handlePrevious = () => {
     if (!isFirstPage) {
       setCurrentPage((page) => page - 1);
-      setSelectedAnswer(userAnswers.current[currentPage - 2]);
     }
   };
 
@@ -69,7 +69,7 @@ export default function QuizScreen({ route, navigation }) {
   };
 
   const currentQuizData = useMemo(() => {
-    const currentQuiz = quizzes[currentPage - 1];
+    const currentQuiz = quizzes[currentPage];
     return {
       question: currentQuiz ? currentQuiz.question : "",
       answers: currentQuiz ? shuffleArray([currentQuiz.correct_answer, ...currentQuiz.incorrect_answers]) : [],
@@ -99,17 +99,20 @@ export default function QuizScreen({ route, navigation }) {
             <Text style={styles.questionText}>{answer}</Text>
           </TouchableOpacity>
         ))}
-
-        <TouchableOpacity
-          disabled={!selectedAnswer}
-          style={styles.button}
-          onPress={isLastPage ? handleSubmit : handleNext}
-        >
-          <Text style={styles.text}>{isLastPage ? "Submit" : "Next"}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity disabled={currentPage === 1} style={styles.button} onPress={handlePrevious}>
-          <Text style={styles.text}>Previous</Text>
-        </TouchableOpacity>
+        <View style={styles.buttonsWrapper}>
+          {!isFirstPage ? (
+            <TouchableOpacity style={{ ...styles.button, ...styles.marginRight10 }} onPress={handlePrevious}>
+              <Text style={styles.text}>Previous</Text>
+            </TouchableOpacity>
+          ) : null}
+          <TouchableOpacity
+            disabled={!selectedAnswer}
+            style={styles.button}
+            onPress={isLastPage ? handleSubmit : handleNext}
+          >
+            <Text style={styles.text}>{isLastPage ? "Submit" : "Next"}</Text>
+          </TouchableOpacity>
+        </View>
       </>
     </ScrollView>
   );
@@ -119,8 +122,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    // alignItems: "center",
-    // justifyContent: "space-between",
     padding: 30,
   },
 
@@ -165,8 +166,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "black",
     alignItems: "center",
-    // shadowOpacity: 0.27,
-    // shadowRadius: 4.65,
     justifyContent: "space-between",
     marginVertical: 10,
   },
@@ -180,5 +179,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 20,
     marginBottom: 50,
+    flex: 1,
+  },
+
+  marginRight10: {
+    marginRight: 10,
+  },
+
+  buttonsWrapper: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
 });
