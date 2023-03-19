@@ -85,6 +85,12 @@ export default function QuizScreen({ route, navigation }) {
     return <Text>Error</Text>;
   }
 
+  if (!quizzes.length) {
+    return (
+      <Text style={styles.errorText}>There were no questions found, please change the settings and try again</Text>
+    );
+  }
+
   return (
     <ImageBackground style={styles.imageBackground} source={backgroundImage}>
       <ScrollView style={styles.container}>
@@ -134,6 +140,13 @@ const styles = StyleSheet.create({
     paddingTop: 120,
     paddingHorizontal: 20,
     paddingBottom: 25,
+  },
+
+  errorText: {
+    fontWeight: "bold",
+    marginTop: 250,
+    fontSize: 25,
+    textAlign: "center",
   },
 
   questionText: {
