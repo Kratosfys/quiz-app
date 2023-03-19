@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ImageBackground } from "react-native";
 import { fetchQuizItems } from "../api";
 import shuffleArray from "../utils/shuffleArray";
+import backgroundImage from "../../assets/bk.png";
 
 export default function QuizScreen({ route, navigation }) {
   const { categoryId, difficulty } = route.params;
@@ -85,8 +86,8 @@ export default function QuizScreen({ route, navigation }) {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <>
+    <ImageBackground style={styles.imageBackground} source={backgroundImage}>
+      <ScrollView style={styles.container}>
         <View style={styles.border}>
           <Text style={styles.text}>{currentQuizData.question}</Text>
         </View>
@@ -101,34 +102,38 @@ export default function QuizScreen({ route, navigation }) {
         ))}
         <View style={styles.buttonsWrapper}>
           {!isFirstPage ? (
-            <TouchableOpacity style={{ ...styles.button, ...styles.marginRight10 }} onPress={handlePrevious}>
+            <TouchableOpacity style={styles.button({ marginRight: 10 })} onPress={handlePrevious}>
               <Text style={styles.text}>Previous</Text>
             </TouchableOpacity>
           ) : null}
           <TouchableOpacity
             disabled={!selectedAnswer}
-            style={styles.button}
+            style={styles.button({ opacity: !selectedAnswer ? 0.4 : 1 })}
             onPress={isLastPage ? handleSubmit : handleNext}
           >
             <Text style={styles.text}>{isLastPage ? "Submit" : "Next"}</Text>
           </TouchableOpacity>
         </View>
-      </>
-    </ScrollView>
+      </ScrollView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    padding: 30,
   },
 
   text: {
     color: "black",
     fontSize: 20,
     fontWeight: "bold",
+  },
+  imageBackground: {
+    flex: 1,
+    paddingTop: 120,
+    paddingHorizontal: 20,
+    paddingBottom: 25,
   },
 
   questionText: {
@@ -170,7 +175,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
 
-  button: {
+  button: ({ marginRight = 0, opacity = 1 }) => ({
     backgroundColor: "dodgerblue",
     borderRadius: 15,
     width: "100%",
@@ -180,11 +185,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 50,
     flex: 1,
-  },
-
-  marginRight10: {
-    marginRight: 10,
-  },
+    marginRight,
+    opacity,
+  }),
 
   buttonsWrapper: {
     flexDirection: "row",

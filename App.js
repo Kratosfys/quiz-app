@@ -9,7 +9,13 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerTitleAlign: "center" }}>
+      <Stack.Navigator
+        screenOptions={{
+          headerTitleAlign: "center",
+          headerTransparent: true,
+          headerTitleStyle: { fontSize: 33 },
+        }}
+      >
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Quiz" component={QuizScreen} />
         <Stack.Screen name="Score" component={ScoreScreen} />
